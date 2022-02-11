@@ -10,6 +10,20 @@ const app = express();
 
 app.use(express.json());
 
+//CORS
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  //browsers tend to send OPTIONS method before POST for general lookup
+  //graphql cant handle OPTIONS, so handling it manually
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 //using middleware not similar to REST
 //isAuth sets metadata in request, checking metadata in controllers for access
 //for single use middleares, implement functions in controllers/resolvers
