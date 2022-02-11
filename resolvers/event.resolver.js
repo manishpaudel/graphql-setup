@@ -4,11 +4,6 @@ const { parseEvent } = require("./populaters");
 
 module.exports = {
   events: async () => {
-    //not populating but using two different functions because it allows unlimited level of nesting
-    //if populate used, then we are limited to Event->Creator->Events
-    //if we use custom function, then we can go Event->Creator->Events->Creator->Event....... as much as frontend demands
-    //also, this is not infinite loop because the depth of function calls is determined by frontend
-
     try {
       const events = await Event.find();
       return events.map((event) => parseEvent(event));
@@ -18,7 +13,10 @@ module.exports = {
     }
   },
 
-  createEvent: async (args) => {
+  createEvent: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("Unauthorized");
+    }
     try {
       const { title, description, price, date } = args.eventInput;
       const event = new Event({
@@ -26,11 +24,11 @@ module.exports = {
         description,
         price: parseFloat(price),
         date: new Date(date),
-        creator: "620389db5c04e85623831ad3",
+        creator: req.userId,
       });
       const result = await event.save();
 
-      const existingUser = await User.findById(result._doc.creator);
+      const existingUser = await User.findById(req.userId);
 
       if (!existingUser) {
         throw new Error("User doesn't exist");

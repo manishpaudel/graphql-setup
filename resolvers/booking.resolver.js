@@ -3,7 +3,10 @@ const Event = require("../models/event.model");
 const { parseBooking, parseEvent } = require("./populaters");
 
 module.exports = {
-  bookings: async () => {
+  bookings: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("Unauthorized");
+    }
     try {
       const bookings = await Booking.find();
       return bookings.map((booking) => parseBooking(booking));
@@ -12,14 +15,17 @@ module.exports = {
     }
   },
 
-  bookEvent: async (args) => {
+  bookEvent: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("Unauthorized");
+    }
     try {
       const { eventId } = args;
       const fetchedEvent = await Event.findById(eventId);
       if (!fetchedEvent) throw new Error("The event doesn't exist");
       const booking = new Booking({
         event: eventId,
-        user: "620365a16f32d0e8673f6b2e",
+        user: req.userId,
       });
       const result = await booking.save();
       return parseBooking(result);
@@ -27,7 +33,10 @@ module.exports = {
       throw error;
     }
   },
-  cancelBooking: async (args) => {
+  cancelBooking: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("Unauthorized");
+    }
     try {
       const { bookingId } = args;
       const booking = await Booking.findById(bookingId).populate("event");

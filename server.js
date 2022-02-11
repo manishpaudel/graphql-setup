@@ -4,12 +4,16 @@ const mongoose = require("mongoose");
 
 const schemas = require("./schemas/index");
 const resolvers = require("./resolvers/index");
+const isAuth = require("./middlewares/isAuth");
 
 const app = express();
 
 app.use(express.json());
 
-//only for development, disable in production server
+//using middleware not similar to REST
+//isAuth sets metadata in request, checking metadata in controllers for access
+//for single use middleares, implement functions in controllers/resolvers
+app.use(isAuth);
 
 //schema are routes -> query = GET, mutation = POST, PATCH, PUT, DELETE
 //type are the return types to be used in rootValue
@@ -19,7 +23,7 @@ app.use(
   graphqlHTTP({
     schema: schemas,
     rootValue: resolvers,
-    graphiql: true,
+    graphiql: true, //only for development, disable in production server
   })
 );
 
